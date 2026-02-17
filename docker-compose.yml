@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: job_funnel
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d job_funnel"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8003:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg2://user:pass@db:5432/job_funnel
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
+      SESSION_SECRET: ${SESSION_SECRET:-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      ALLOW_DEV_HEADER: "false"
+    command: sh -c "python scripts/wait_for_db.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8003
+      VITE_DEV_USER_ID: ${VITE_DEV_USER_ID:-}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  pgdata:

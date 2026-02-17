@@ -1,0 +1,44 @@
+### Create user
+POST http://localhost:8000/users
+Content-Type: application/json
+
+{
+  "email": "me@example.com",
+  "name": "Ilya",
+  "provider": "google",
+  "provider_sub": "google-oauth2|123456"
+}
+
+### List stages
+GET http://localhost:8000/stages
+
+### Create job
+POST http://localhost:8000/jobs
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "company": "Acme",
+  "position": "Backend Engineer",
+  "source": "LinkedIn",
+  "salary": "EUR 4500-5500",
+  "stack": "Python, FastAPI, Postgres",
+  "notes": "Reached out via recruiter"
+}
+
+### List jobs
+GET http://localhost:8000/jobs
+X-User-Id: 1
+
+### Update job stage (replace 1 with job id, 3 with stage id)
+PATCH http://localhost:8000/jobs/1
+Content-Type: application/json
+X-User-Id: 1
+
+{
+  "stage_id": 3
+}
+
+### Metrics
+GET http://localhost:8000/metrics
+X-User-Id: 1
