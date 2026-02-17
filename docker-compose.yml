@@ -30,7 +30,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      ALLOW_DEV_HEADER: "false"
+      ALLOW_DEV_HEADER: ${ALLOW_DEV_HEADER:-false}
     command: sh -c "python scripts/wait_for_db.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
       - .:/app

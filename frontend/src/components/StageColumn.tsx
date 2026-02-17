@@ -9,8 +9,8 @@ type StageColumnProps = {
   draggingId: number | null;
   onPointerDown: (id: number, event: PointerEvent<HTMLElement>) => void;
   canInteract: boolean;
-  onMove: (id: number, direction: "left" | "right") => void;
-  canMove: (stageId: Stage["id"], direction: "left" | "right") => boolean;
+  stages: Stage[];
+  onMoveToStage: (id: number, stageId: Stage["id"]) => void;
   onOpen: (id: number) => void;
 };
 
@@ -21,8 +21,8 @@ const StageColumn = ({
   draggingId,
   onPointerDown,
   canInteract,
-  onMove,
-  canMove,
+  stages,
+  onMoveToStage,
   onOpen,
 }: StageColumnProps) => {
   return (
@@ -39,11 +39,10 @@ const StageColumn = ({
             key={application.id}
             lang={lang}
             application={application}
-            canMoveLeft={canMove(stage.id, "left")}
-            canMoveRight={canMove(stage.id, "right")}
             isDragging={draggingId === application.id}
             isDisabled={!canInteract}
-            onMove={onMove}
+            stages={stages}
+            onMoveToStage={onMoveToStage}
             onPointerDown={onPointerDown}
             onOpen={onOpen}
           />

@@ -11,7 +11,7 @@ import type {
   Stage,
   StageId,
 } from "./types";
-import { stagesByLanguage, stageOrder } from "./data";
+import { stagesByLanguage } from "./data";
 import { t } from "./i18n";
 import Header from "./components/Header";
 import Dashboard from "./components/Dashboard";
@@ -39,6 +39,30 @@ const stageLabels: Record<StageId, { ru: string; en: string }> = {
   final: { ru: "Финал", en: "Final" },
   offer: { ru: "Оффер", en: "Offer" },
   rejected: { ru: "Отказ", en: "Rejected" },
+};
+
+const sourceOptions: Record<Language, string[]> = {
+  ru: [
+    "LinkedIn",
+    "Telegram",
+    "HH.ru",
+    "Indeed",
+    "Jooble",
+    "Реферал",
+    "Сайт компании",
+    "Email",
+    "Другое",
+  ],
+  en: [
+    "LinkedIn",
+    "Telegram",
+    "Indeed",
+    "Jooble",
+    "Referral",
+    "Company site",
+    "Email",
+    "Other",
+  ],
 };
 
 const isActiveStage = (stage: StageId) => stage !== "rejected";
@@ -332,27 +356,17 @@ const App = () => {
     }));
   }, [metrics, apiStages, lang]);
 
-  const moveCard = async (id: number, direction: "left" | "right") => {
+  const moveToStage = async (id: number, stageId: StageId) => {
     if (authRequired) {
       return;
     }
-    const app = applications.find((item) => item.id === id);
-    if (!app) {
-      return;
-    }
-    const currentIndex = stageOrder.indexOf(app.stage);
-    const nextIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
-    const nextStage = stageOrder[nextIndex];
-    if (!nextStage) {
-      return;
-    }
-    if (!stageIdMap[nextStage]) {
+    if (!stageIdMap[stageId]) {
       setError("Stage map is not ready. Reload the page.");
       return;
     }
     try {
       const updated = await api.updateJob(id, {
-        stage_id: stageIdMap[nextStage],
+        stage_id: stageIdMap[stageId],
       });
       const mapped = toApplication(updated, apiStages);
       setApplications((prev) => prev.map((item) => (item.id === id ? mapped : item)));
@@ -623,7 +637,7 @@ const App = () => {
             draggingId={draggingId}
             onPointerDown={handlePointerDown}
             canInteract={!authRequired}
-            onMove={moveCard}
+            onMoveToStage={moveToStage}
             onOpen={openModalForCard}
           />
         </section>
@@ -646,11 +660,10 @@ const App = () => {
               <Card
                 lang={lang}
                 application={card}
-                canMoveLeft={false}
-                canMoveRight={false}
                 isDragging={false}
                 isDisabled={true}
-                onMove={() => {}}
+                stages={stages}
+                onMoveToStage={() => {}}
                 onPointerDown={(id, event) => {}}
                 onOpen={() => {}}
               />
@@ -768,12 +781,20 @@ const App = () => {
               <div className="field">
                 <span className="field__label">{t(lang, "sourceLabel")}</span>
                 {isEditing ? (
-                  <input
-                    className="field__input"
-                    type="text"
-                    value={draft.source}
-                    onChange={(event) => handleDraftChange("source", event.target.value)}
-                  />
+                  <>
+                    <input
+                      className="field__input"
+                      type="text"
+                      list="source-options"
+                      value={draft.source}
+                      onChange={(event) => handleDraftChange("source", event.target.value)}
+                    />
+                    <datalist id="source-options">
+                      {sourceOptions[lang].map((option) => (
+                        <option key={option} value={option} />
+                      ))}
+                    </datalist>
+                  </>
                 ) : (
                   <div className="field__value">{draft.source || "-"}</div>
                 )}

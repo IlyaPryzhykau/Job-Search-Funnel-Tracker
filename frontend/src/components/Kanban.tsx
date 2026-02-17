@@ -11,7 +11,7 @@ type KanbanProps = {
   draggingId: number | null;
   onPointerDown: (id: number, event: PointerEvent<HTMLElement>) => void;
   canInteract: boolean;
-  onMove: (id: number, direction: "left" | "right") => void;
+  onMoveToStage: (id: number, stageId: StageId) => void;
   onOpen: (id: number) => void;
 };
 
@@ -22,7 +22,7 @@ const Kanban = ({
   draggingId,
   onPointerDown,
   canInteract,
-  onMove,
+  onMoveToStage,
   onOpen,
 }: KanbanProps) => {
   const grouped = useMemo(() => {
@@ -37,14 +37,6 @@ const Kanban = ({
     return map;
   }, [applications]);
 
-  const canMove = (stageId: StageId, direction: "left" | "right") => {
-    const index = stageOrder.indexOf(stageId);
-    if (direction === "left") {
-      return index > 0;
-    }
-    return index < stageOrder.length - 1;
-  };
-
   return (
     <section className="kanban">
       {stages.map((stage) => (
@@ -56,8 +48,8 @@ const Kanban = ({
           draggingId={draggingId}
           onPointerDown={onPointerDown}
           canInteract={canInteract}
-          onMove={onMove}
-          canMove={canMove}
+          stages={stages}
+          onMoveToStage={onMoveToStage}
           onOpen={onOpen}
         />
       ))}

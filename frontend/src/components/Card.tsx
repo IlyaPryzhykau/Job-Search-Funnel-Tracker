@@ -1,6 +1,6 @@
 import { t } from "../i18n";
 import type { PointerEvent } from "react";
-import type { Application, Language } from "../types";
+import type { Application, Language, Stage } from "../types";
 
 const priorityLabels: Record<
   Language,
@@ -21,11 +21,10 @@ const priorityLabels: Record<
 type CardProps = {
   lang: Language;
   application: Application;
-  canMoveLeft: boolean;
-  canMoveRight: boolean;
   isDragging: boolean;
   isDisabled: boolean;
-  onMove: (id: number, direction: "left" | "right") => void;
+  stages: Stage[];
+  onMoveToStage: (id: number, stageId: Stage["id"]) => void;
   onPointerDown: (id: number, event: PointerEvent<HTMLElement>) => void;
   onOpen: (id: number) => void;
 };
@@ -33,11 +32,10 @@ type CardProps = {
 const Card = ({
   lang,
   application,
-  canMoveLeft,
-  canMoveRight,
   isDragging,
   isDisabled,
-  onMove,
+  stages,
+  onMoveToStage,
   onPointerDown,
   onOpen,
 }: CardProps) => {
@@ -78,30 +76,23 @@ const Card = ({
         <span>{t(lang, "lastTouch")}: {application.lastTouch}</span>
       </div>
       <div className="card__actions">
-        <button
-          type="button"
-          className="card__action"
-          aria-label={t(lang, "moveLeft")}
-          onClick={(event) => {
+        <span className="card__select-label">{t(lang, "moveTo")}</span>
+        <select
+          className="card__select"
+          value={application.stage}
+          onClick={(event) => event.stopPropagation()}
+          onChange={(event) => {
             event.stopPropagation();
-            onMove(application.id, "left");
+            onMoveToStage(application.id, event.target.value as Stage["id"]);
           }}
-          disabled={isDisabled || !canMoveLeft}
+          disabled={isDisabled}
         >
-          {"<"}
-        </button>
-        <button
-          type="button"
-          className="card__action"
-          aria-label={t(lang, "moveRight")}
-          onClick={(event) => {
-            event.stopPropagation();
-            onMove(application.id, "right");
-          }}
-          disabled={isDisabled || !canMoveRight}
-        >
-          {">"}
-        </button>
+          {stages.map((stage) => (
+            <option key={stage.id} value={stage.id}>
+              {stage.title}
+            </option>
+          ))}
+        </select>
       </div>
     </article>
   );
